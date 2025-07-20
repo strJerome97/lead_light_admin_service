@@ -1,0 +1,44 @@
+[
+    {
+        "object": "admin_portal_administrator_user_details",
+        "action": "create",
+        "id": 1,
+        "data": {
+            "name": "Super Admin",
+            "email": "leadlightsystemsolutions@gmail.com",
+            "code": "7f3b2e8c9d4a1b6e5c0f2d8a3e7b9c6f1a4d3e2b0c8f7a6d5e9b1c3f0a2d7e6b",
+            "phone_number": "+1234567890",
+            "address": "123 Admin Street, Admin City, Admin Country"
+        }
+    },
+    {
+        "object": "admin_portal_administrator_login_credential",
+        "action": "create",
+        "id": 1,
+        "data": {
+            "admin": 1,
+            "username": "leadlight_superadmin",
+            "password": "2c6ee24b09816a6f14f95d1698b24eadb2fa2d7e2bb1b2a293e5c6a5a5a07ded"
+        }
+    },
+    {
+        "object": "admin_portal_administrator_recovery_email",
+        "action": "create",
+        "id": 1,
+        "data": {
+            "admin": 1,
+            "email": "jeromecampana.personal@gmail.com",
+            "is_primary": true
+        }
+    },
+    {
+        "object": "admin_portal_administrator_recovery_phone",
+        "action": "create",
+        "id": 1,
+        "data": {
+            "admin": 1,
+            "phone_number": "+639368438251",
+            "is_primary": true
+        }
+    }
+]
