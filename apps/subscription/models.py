@@ -53,8 +53,8 @@ class SubscriptionCompany(models.Model):
     class Meta:
         verbose_name = "Subscription Company"
         verbose_name_plural = "Subscription Companies"
-        ordering = ['company_name']
+        ordering = ['company']
         db_table = 'subscription_company'
 
     def __str__(self):
-        return self.company_name
+        return self.company

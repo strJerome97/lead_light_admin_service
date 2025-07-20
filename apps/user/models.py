@@ -14,11 +14,11 @@ class UserDetails(models.Model):
     class Meta:
         verbose_name = "User Detail"
         verbose_name_plural = "User Details"
-        ordering = ['username']
+        # ordering = ['username']
         db_table = 'user_details'
 
-    def __str__(self):
-        return self.username
+    # def __str__(self):
+    #     return self.username
 
 class UserProfile(models.Model):
     user = models.OneToOneField(UserDetails, on_delete=models.CASCADE, related_name='profile')

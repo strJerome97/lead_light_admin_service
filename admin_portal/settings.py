@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'apps.access',
-    'apps.admin',
+    'apps.administration',
     'apps.affiliate',
     'apps.api',
     'apps.authentication',

@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 class AffiliateLink(models.Model):
-    partner = models.ForeignKey('affiliate.PartnerDetails', on_delete=models.CASCADE, related_name='affiliate_links')
+    partner = models.ForeignKey('partner.PartnerDetails', on_delete=models.CASCADE, related_name='affiliate_links')
     link = models.URLField()
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -7,7 +7,7 @@ class CompanyDetails(models.Model):
     contact_email = models.EmailField()
     contact_phone = models.CharField(max_length=20, blank=True, null=True)
     affiliated_partner = models.ForeignKey('partner.PartnerDetails', on_delete=models.SET_NULL, blank=True, null=True, related_name='companies')
-    logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
+    # logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
     established_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
