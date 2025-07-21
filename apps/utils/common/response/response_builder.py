@@ -61,8 +61,8 @@ HTTP_STATUS_CODES = {
 
 class BuildResponse:
     def __init__(self, result=None):
-        self.result = result or {}
-        self.code = self.result.get('code', 200)
+        # self.result = result or {}
+        self.code = result.get('code', 200)
         self.status = result.get('status')
         self.message = result.get('message')
         self.data = result.get('data', [])

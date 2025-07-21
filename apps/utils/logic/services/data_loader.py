@@ -81,19 +81,30 @@ class DataLoader:
                                 print(f"Model not found for {object_path}")
                                 continue
                             if action == "create":
+                                # Handle create or upsert by ID
+                                obj_id = obj_data.pop("id", None)
                                 # Resolve ForeignKey fields
-                                for field in list(obj_data.keys()):
+                                for field, value in list(obj_data.items()):
                                     try:
                                         model_field = Model._meta.get_field(field)
                                         if model_field.is_relation and model_field.many_to_one:
-                                            related_model = model_field.related_model
-                                            obj_data[field] = related_model.objects.get(pk=obj_data[field])
+                                            obj_data[field] = model_field.related_model.objects.get(pk=value)
                                     except Exception:
-                                        # Field is not a relation or does not exist, skip
-                                        pass
-                                obj = Model.objects.create(**obj_data)
+                                        pass  # Not a relation or invalid field, skip
+
+                                if obj_id and Model.objects.filter(pk=obj_id).exists():
+                                    obj = Model.objects.get(pk=obj_id)
+                                    for field, value in obj_data.items():
+                                        setattr(obj, field, value)
+                                    obj.save()
+                                    logger.info(f"Successfully updated {object_path} with data: {obj_data}")
+                                else:
+                                    if obj_id:
+                                        obj = Model.objects.create(id=obj_id, **obj_data)
+                                    else:
+                                        obj = Model.objects.create(**obj_data)
+                                    logger.info(f"Successfully created {object_path} with data: {obj_data}")
                                 results.append({"object": object_path, "id": obj.id})
-                                logger.info(f"Successfully created {object_path} with data: {obj_data}")
                             elif action == "update":
                                 # Add more actions as needed
                                 obj_id = obj_data.pop("id", None)
@@ -150,3 +161,4 @@ class DataLoader:
         except Exception as e:
             logger.error(f"Error getting data files: {e}")
             return []
+        
