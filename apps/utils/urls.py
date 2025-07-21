@@ -1,8 +1,8 @@
 from django.urls import path
-from . import views
+from .api import views
 
 app_name = 'utils'
 
 urlpatterns = [
-    # Add your URL patterns here
+    path('data_loader/', views.DataLoaderView.as_view(), name='data_loader'),
 ]

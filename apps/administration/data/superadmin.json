@@ -1,6 +1,6 @@
 [
     {
-        "object": "admin_portal_administrator_user_details",
+        "object": "administration.AdministratorUserDetails",
         "action": "create",
         "id": 1,
         "data": {
@@ -12,7 +12,7 @@
         }
     },
     {
-        "object": "admin_portal_administrator_login_credential",
+        "object": "administration.AdministratorLoginCredential",
         "action": "create",
         "id": 1,
         "data": {
@@ -22,7 +22,7 @@
         }
     },
     {
-        "object": "admin_portal_administrator_recovery_email",
+        "object": "administration.AdministratorRecoveryEmail",
         "action": "create",
         "id": 1,
         "data": {
@@ -32,7 +32,7 @@
         }
     },
     {
-        "object": "admin_portal_administrator_recovery_phone",
+        "object": "administration.AdministratorRecoveryPhone",
         "action": "create",
         "id": 1,
         "data": {
