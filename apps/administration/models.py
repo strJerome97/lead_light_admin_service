@@ -4,7 +4,7 @@ from django.db import models
 class AdministratorUserDetails(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    code = models.CharField(max_length=50, unique=True)
+    code = models.CharField(max_length=150, unique=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     # profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
@@ -19,8 +19,8 @@ class AdministratorUserDetails(models.Model):
         ordering = ['name']
         db_table = 'admin_portal_administrator_user_details'
 
-    def __str__(self):
-        return self.user.username
+    # def __str__(self):
+    #     return self.user.username
 
 class AdministratorLoginCredential(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
@@ -37,11 +37,11 @@ class AdministratorLoginCredential(models.Model):
         ordering = ['-created_at']
         db_table = 'admin_portal_administrator_login_credential'
 
-    def __str__(self):
-        return f"{self.username} - {self.user.user.username}"
+    # def __str__(self):
+    #     return f"{self.username} - {self.user.user.username}"
     
 class AdministratorLoginHistory(models.Model):
-    user = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     login_time = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
 
@@ -51,11 +51,11 @@ class AdministratorLoginHistory(models.Model):
         ordering = ['-login_time']
         db_table = 'admin_portal_administrator_login_history'
 
-    def __str__(self):
-        return f"{self.user.user.username} - {self.login_time}"
+    # def __str__(self):
+    #     return f"{self.user.user.username} - {self.login_time}"
 
 class AdministratorRecoveryEmail(models.Model):
-    user = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     email = models.EmailField(unique=True)
     is_primary = models.BooleanField(default=False)
 
@@ -65,11 +65,11 @@ class AdministratorRecoveryEmail(models.Model):
         ordering = ['-is_primary']
         db_table = 'admin_portal_administrator_recovery_email'
 
-    def __str__(self):
-        return f"{self.user.user.username} - {self.email}"
+    # def __str__(self):
+    #     return f"{self.user.user.username} - {self.email}"
 
 class AdministratorRecoveryPhone(models.Model):
-    user = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15, unique=True)
     is_primary = models.BooleanField(default=False)
 
@@ -79,5 +79,5 @@ class AdministratorRecoveryPhone(models.Model):
         ordering = ['-is_primary']
         db_table = 'admin_portal_administrator_recovery_phone'
 
-    def __str__(self):
-        return f"{self.user.user.username} - {self.phone_number}"
+    # def __str__(self):
+    #     return f"{self.user.user.username} - {self.phone_number}"

@@ -10,8 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+import dj_database_url
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,17 +26,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-76j)=7n7zi)z#%^!2ki11&llxen^s=g5tl^jtn#z#tg895hoxr'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-76j)=7n7zi)z#%^!2ki11&llxen^s=g5tl^jtn#z#tg895hoxr')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if os.getenv('DJANGO_ALLOWED_HOSTS') else []
 
+CLIENT_SERVICE_URL = os.getenv('CLIENT_SERVICE_URL', '')
 
 # Application definition
-
 INSTALLED_APPS = [
     'apps.access',
     'apps.administration',
@@ -90,11 +97,19 @@ WSGI_APPLICATION = 'admin_portal.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
+# Database
+# If DATABASE_URL is set in .env, use dj_database_url to parse it, else fallback to default sqlite3
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'admin_portal_db',
+        'USER': 'openpg',
+        'PASSWORD': 'openpgpwd',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    },
+    'lite': dj_database_url.parse(os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'))
 }
 
 

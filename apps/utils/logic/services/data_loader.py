@@ -46,39 +46,86 @@ class DataLoader:
         The 'object' key should be in the format 'app_label.model_name'.
         The 'action' key should specify the action to perform (e.g., 'create').
         The 'data' key should contain the data to be saved.
+        This method will resolve ForeignKey fields by fetching the related model instance using the provided ID.
         The method will return a list of saved objects.
-        If an error occurs while saving, it will print the error message and continue with the next
-        entry.
+        If an error occurs while saving, it will print the error message and continue with the next entry.
         :param data: List of JSON file paths containing the data to be saved.
         :return: List of saved objects.
         """
-        if len(data) == 0:
-            logger.error("No data files found to process.")
-            return []
-        
-        results = []
-        for file_path in data:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                json_data = json.load(f)
-                for entry in json_data:
-                    object_path = entry.get("object")
-                    action = entry.get("action")
-                    obj_data = entry.get("data")
-                    if not (object_path and action and obj_data):
-                        continue
-                    try:
-                        app_label, model_name = object_path.split(".")
-                        Model = apps.get_model(app_label, model_name)
-                        if not Model:
-                            print(f"Model not found for {object_path}")
+        try:
+            if len(data) == 0:
+                logger.error("No data files found to process.")
+                # Construct an empty result list if no data files are found
+                return {
+                    "code": 404,
+                    "status": "error", 
+                    "message": "No data files found", 
+                    "data": []
+                }
+
+            results = []
+            for file_path in data:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    json_data = json.load(f)
+                    for entry in json_data:
+                        object_path = entry.get("object")
+                        action = entry.get("action")
+                        obj_data = entry.get("data")
+                        if not (object_path and action and obj_data):
                             continue
-                        if action == "create":
-                            obj = Model.objects.create(**obj_data)
-                            results.append(obj)
-                        # Add more actions as needed
-                    except Exception as e:
-                        print(f"Error saving {object_path}: {e}")
-        return results
+                        try:
+                            logger.info(f"Creating {object_path} with data: {obj_data}")
+                            app_label, model_name = object_path.split(".")
+                            Model = apps.get_model(app_label, model_name)
+                            if not Model:
+                                print(f"Model not found for {object_path}")
+                                continue
+                            if action == "create":
+                                # Resolve ForeignKey fields
+                                for field in list(obj_data.keys()):
+                                    try:
+                                        model_field = Model._meta.get_field(field)
+                                        if model_field.is_relation and model_field.many_to_one:
+                                            related_model = model_field.related_model
+                                            obj_data[field] = related_model.objects.get(pk=obj_data[field])
+                                    except Exception:
+                                        # Field is not a relation or does not exist, skip
+                                        pass
+                                obj = Model.objects.create(**obj_data)
+                                results.append({"object": object_path, "id": obj.id})
+                                logger.info(f"Successfully created {object_path} with data: {obj_data}")
+                            elif action == "update":
+                                # Add more actions as needed
+                                obj_id = obj_data.pop("id", None)
+                                if obj_id:
+                                    obj = Model.objects.get(pk=obj_id)
+                                    for field, value in obj_data.items():
+                                        setattr(obj, field, value)
+                                    obj.save()
+                                    results.append({"object": object_path, "id": obj.id})
+                                    logger.info(f"Successfully updated {object_path} with data: {obj_data}")
+                                else:
+                                    results.append({"object": object_path, "id": None})
+                                    logger.error(f"ID not provided for update action on {object_path}")
+                        except Exception as e:
+                            print(f"Error saving {object_path}: {e}")
+                            logger.error(f"Error saving {object_path}: {e}")
+            # Construct the final results
+            return {
+                "code": 200,
+                "status": "success",
+                "message": "Data loaded successfully",
+                "data": results
+            }
+        except Exception as e:
+            logger.error(f"Error saving data to database: {e}")
+            # Construct an empty result list if an error occurs
+            return {
+                "code": 500,
+                "status": "error",
+                "message": "Error saving data to database",
+                "data": []
+            }
     
     def _get_data_file(self):
         """
@@ -89,11 +136,11 @@ class DataLoader:
         """
         try:
             if self.app:
-                data_dir = os.path.join(self.file_path, self.app, 'data')
+                data_dir = os.path.join('apps', self.app, 'data')
                 pattern = os.path.join(data_dir, '*.json')
             else:
                 pattern = os.path.join(self.file_path, '*', 'data', '*.json')
-
+            print(f"Searching for JSON files in: {pattern}")
             files = glob.glob(pattern)
 
             if not files:
