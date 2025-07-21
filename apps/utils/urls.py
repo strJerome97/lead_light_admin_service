@@ -4,5 +4,5 @@ from .api import views
 app_name = 'utils'
 
 urlpatterns = [
-    path('data_loader/', views.DataLoaderView.as_view(), name='data_loader'),
+    path('data_loader', views.DataLoaderView.as_view(), name='data_loader'),
 ]

@@ -1,8 +1,10 @@
-
+from apps.utils.common.logger import logger
 import json
 import glob
 import os
 from django.apps import apps
+
+logger = logger.PortalLogger("DATA_LOADER")
 
 class DataLoader:
     """
@@ -50,6 +52,10 @@ class DataLoader:
         :param data: List of JSON file paths containing the data to be saved.
         :return: List of saved objects.
         """
+        if len(data) == 0:
+            logger.error("No data files found to process.")
+            return []
+        
         results = []
         for file_path in data:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -81,15 +87,19 @@ class DataLoader:
         :return: List of JSON file paths.
         :raises FileNotFoundError: If no JSON data files are found in the specified path
         """
-        if self.app:
-            data_dir = os.path.join(self.file_path, self.app, 'data')
-            pattern = os.path.join(data_dir, '*.json')
-        else:
-            pattern = os.path.join(self.file_path, '*', 'data', '*.json')
+        try:
+            if self.app:
+                data_dir = os.path.join(self.file_path, self.app, 'data')
+                pattern = os.path.join(data_dir, '*.json')
+            else:
+                pattern = os.path.join(self.file_path, '*', 'data', '*.json')
 
-        files = glob.glob(pattern)
+            files = glob.glob(pattern)
 
-        if not files:
-            raise FileNotFoundError("No JSON data files found in the specified path.")
+            if not files:
+                raise FileNotFoundError("No JSON data files found in the specified path.")
 
-        return files  # Return the list of JSON file paths
+            return files  # Return the list of JSON file paths
+        except Exception as e:
+            logger.error(f"Error getting data files: {e}")
+            return []
