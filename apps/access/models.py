@@ -4,8 +4,11 @@ from django.db import models
 class AccessGroups(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
+    unique_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    company = models.ForeignKey('company.CompanyDetails', on_delete=models.CASCADE, related_name='access_groups', null=True, blank=True)
 
     class Meta:
         verbose_name = "Access Group"
@@ -41,6 +44,7 @@ class AccessPermissions(models.Model):
     can_delete = models.BooleanField(default=False)
     can_archive = models.BooleanField(default=False)
     can_restore = models.BooleanField(default=False)
+    filter_query = models.TextField(blank=True, null=True)  # Optional field for filter query
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -56,10 +60,13 @@ class AccessPermissions(models.Model):
 class UserGroupAccess(models.Model):
     user = models.ForeignKey('user.UserDetails', on_delete=models.CASCADE, related_name='group_access', null=True, blank=True)
     admin = models.ForeignKey('administration.AdministratorUserDetails', on_delete=models.CASCADE, related_name='group_access', null=True, blank=True)
+    unique_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
     group = models.ForeignKey(AccessGroups, on_delete=models.CASCADE, related_name='user_access')
     group_inherit = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='inherited_by')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    company = models.ForeignKey('company.CompanyDetails', on_delete=models.CASCADE, related_name='user_group_access', null=True, blank=True)
 
     class Meta:
         verbose_name = "User Group Access"

@@ -4,5 +4,5 @@ from .api import views
 app_name = 'access'
 
 urlpatterns = [
-    # Add your URL patterns here
+    path('load_admin_access', views.LoadAccessAdminView.as_view(), name='load_admin_access'),
 ]

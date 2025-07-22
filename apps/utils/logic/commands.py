@@ -1,13 +1,13 @@
-from apps.utils.logic.services.data_loader import DataLoader
-from apps.utils.logic.services.load_app_objects import LoadAppObjects
 import json
+from apps.utils.logic.services.load_app_objects import LoadAppObjects
+from apps.utils.logic.services.data_loader import DataLoader
 
-class UseCase:
+class DataLoaderCommand():
     def __init__(self, request):
         self.request = request
         self.body = json.loads(request.body)
 
-    def execute_data_loader(self):
+    def execute(self):
         if not self.body.get('app_name') and not self.body.get('file_path'):
             return {
                 "code": 400,
@@ -21,8 +21,12 @@ class UseCase:
         data_loader = DataLoader(file_path=file_path, app_name=app_name)
         result = data_loader.execute()
         return result
-    
-    def execute_load_app_objects(self):
+
+class LoadAppObjectsCommand():
+    def __init__(self, request):
+        self.request = request
+
+    def execute(self):
         data_loader = LoadAppObjects(request=self.request)
         result = data_loader.execute()
         return result
