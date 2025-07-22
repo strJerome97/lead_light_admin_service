@@ -1,8 +1,8 @@
 from apps.utils.common.logger import logger
+from django.apps import apps
 import json
 import glob
 import os
-from django.apps import apps
 
 logger = logger.PortalLogger("DATA_LOADER")
 

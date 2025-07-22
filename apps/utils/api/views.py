@@ -10,3 +10,9 @@ class DataLoaderView(CodeAuthView):
         execute_use_case = UseCase(request)
         result = execute_use_case.execute_data_loader()
         return BuildResponse(result).post_response()
+
+class LoadAppObjects(CodeAuthView):
+    def post(self, request):
+        execute_use_case = UseCase(request)
+        result = execute_use_case.execute_load_app_objects()
+        return BuildResponse(result).post_response()

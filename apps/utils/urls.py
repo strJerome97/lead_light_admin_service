@@ -5,4 +5,5 @@ app_name = 'utils'
 
 urlpatterns = [
     path('data_loader', views.DataLoaderView.as_view(), name='data_loader'),
+    path('load_app_objects', views.LoadAppObjects.as_view(), name='load_app_objects'),
 ]

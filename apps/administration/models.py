@@ -17,10 +17,10 @@ class AdministratorUserDetails(models.Model):
         verbose_name = "Administrator User Details"
         verbose_name_plural = "Administrator User Details"
         ordering = ['name']
-        db_table = 'admin_portal_administrator_user_details'
+        db_table = 'administrator_user_details'
 
-    # def __str__(self):
-    #     return self.user.username
+    def __str__(self):
+        return self.name
 
 class AdministratorLoginCredential(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
@@ -35,11 +35,11 @@ class AdministratorLoginCredential(models.Model):
         verbose_name = "Administrator Login Credential"
         verbose_name_plural = "Administrator Login Credentials"
         ordering = ['-created_at']
-        db_table = 'admin_portal_administrator_login_credential'
+        db_table = 'administrator_login_credential'
 
-    # def __str__(self):
-    #     return f"{self.username} - {self.user.user.username}"
-    
+    def __str__(self):
+        return f"{self.username} - {self.admin.name}"
+
 class AdministratorLoginHistory(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     login_time = models.DateTimeField(auto_now_add=True)
@@ -49,10 +49,10 @@ class AdministratorLoginHistory(models.Model):
         verbose_name = "Administrator Login History"
         verbose_name_plural = "Administrator Login Histories"
         ordering = ['-login_time']
-        db_table = 'admin_portal_administrator_login_history'
+        db_table = 'administrator_login_history'
 
-    # def __str__(self):
-    #     return f"{self.user.user.username} - {self.login_time}"
+    def __str__(self):
+        return f"{self.admin.name} - {self.login_time}"
 
 class AdministratorRecoveryEmail(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
@@ -63,10 +63,10 @@ class AdministratorRecoveryEmail(models.Model):
         verbose_name = "Administrator Recovery Email"
         verbose_name_plural = "Administrator Recovery Emails"
         ordering = ['-is_primary']
-        db_table = 'admin_portal_administrator_recovery_email'
+        db_table = 'administrator_recovery_email'
 
-    # def __str__(self):
-    #     return f"{self.user.user.username} - {self.email}"
+    def __str__(self):
+        return f"{self.admin.name} - {self.email}"
 
 class AdministratorRecoveryPhone(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
@@ -77,7 +77,52 @@ class AdministratorRecoveryPhone(models.Model):
         verbose_name = "Administrator Recovery Phone"
         verbose_name_plural = "Administrator Recovery Phones"
         ordering = ['-is_primary']
-        db_table = 'admin_portal_administrator_recovery_phone'
+        db_table = 'administrator_recovery_phone'
 
-    # def __str__(self):
-    #     return f"{self.user.user.username} - {self.phone_number}"
+    def __str__(self):
+        return f"{self.admin.name} - {self.phone_number}"
+
+
+class AdministratorFlaggedIP(models.Model):
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    ip_address = models.GenericIPAddressField()
+    reason = models.TextField(blank=True, null=True)
+    flagged_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Administrator Flagged IP"
+        verbose_name_plural = "Administrator Flagged IPs"
+        ordering = ['-flagged_at']
+        db_table = 'administrator_flagged_ip'
+
+
+class AdministratorFlaggedEmail(models.Model):
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    email = models.EmailField()
+    reason = models.TextField(blank=True, null=True)
+    flagged_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Administrator Flagged Email"
+        verbose_name_plural = "Administrator Flagged Emails"
+        ordering = ['-flagged_at']
+        db_table = 'administrator_flagged_email'
+
+    def __str__(self):
+        return f"{self.admin.email} - {self.email}"
+
+
+class AdministratorFlaggedPhone(models.Model):
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15)
+    reason = models.TextField(blank=True, null=True)
+    flagged_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Administrator Flagged Phone"
+        verbose_name_plural = "Administrator Flagged Phones"
+        ordering = ['-flagged_at']
+        db_table = 'administrator_flagged_phone'
+
+    def __str__(self):
+        return f"{self.admin.email} - {self.phone_number}"

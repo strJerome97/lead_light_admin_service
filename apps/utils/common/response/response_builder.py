@@ -60,8 +60,25 @@ HTTP_STATUS_CODES = {
 }
 
 class BuildResponse:
+    """
+    A class to build HTTP responses with CORS headers and standardized status codes.
+    It supports various HTTP methods (GET, POST, PUT, PATCH, DELETE) and can handle OPTIONS requests.
+    The response body is built from a result dictionary that contains the status code, message, and data.
+    The class also sets CORS headers to allow cross-origin requests from a specified client service URL
+    and supports various HTTP methods.
+    The response body is structured to include status, message, and data fields.
+    The class can be initialized with a result dictionary that contains the response details.
+    It provides methods to generate responses for different HTTP methods and an OPTIONS handler.
+    Usage of this class allows for consistent response formatting across the application.
+    Example:
+    response_builder = BuildResponse(result={
+        'code': 200,
+        'status': 'success',
+        'message': 'Request was successful',
+        'data': {'key': 'value'}
+    })
+    """
     def __init__(self, result=None):
-        # self.result = result or {}
         self.code = result.get('code', 200)
         self.status = result.get('status')
         self.message = result.get('message')
@@ -90,6 +107,21 @@ class BuildResponse:
         status_code = HTTP_STATUS_CODES.get(self.code, HTTPStatus.OK)["status"]
         response = JsonResponse(self._build_response_body(), status=status_code, safe=False)
         return self._set_cors_headers(response, "POST")
+    
+    def put_response(self):
+        status_code = HTTP_STATUS_CODES.get(self.code, HTTPStatus.OK)["status"]
+        response = JsonResponse(self._build_response_body(), status=status_code, safe=False)
+        return self._set_cors_headers(response, "PUT")
+
+    def patch_response(self):
+        status_code = HTTP_STATUS_CODES.get(self.code, HTTPStatus.OK)["status"]
+        response = JsonResponse(self._build_response_body(), status=status_code, safe=False)
+        return self._set_cors_headers(response, "PATCH")
+
+    def delete_response(self):
+        status_code = HTTP_STATUS_CODES.get(self.code, HTTPStatus.OK)["status"]
+        response = JsonResponse(self._build_response_body(), status=status_code, safe=False)
+        return self._set_cors_headers(response, "DELETE")
 
     @staticmethod
     def options_handler():
