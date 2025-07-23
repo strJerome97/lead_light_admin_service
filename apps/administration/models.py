@@ -26,7 +26,10 @@ class AdministratorLoginCredential(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     username = models.CharField(max_length=150, unique=True)
     password = models.CharField(max_length=128)
+    required_password_change = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
+    is_sso_enabled = models.BooleanField(default=False)
+    is_mfa_enabled = models.BooleanField(default=False)
     last_password_change = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -126,3 +129,19 @@ class AdministratorFlaggedPhone(models.Model):
 
     def __str__(self):
         return f"{self.admin.email} - {self.phone_number}"
+
+class AdministratorOneTimePassword(models.Model):
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "Administrator One Time Password"
+        verbose_name_plural = "Administrator One Time Passwords"
+        ordering = ['-created_at']
+        db_table = 'administrator_one_time_password'
+
+    def __str__(self):
+        return f"OTP for {self.admin.name} - {self.otp}"

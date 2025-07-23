@@ -117,3 +117,19 @@ class FlaggedUser(models.Model):
 
     def __str__(self):
         return f"Flagged User: {self.user.username} - Reason: {self.reason}"
+
+class SSOConfiguration(models.Model):
+    provider_name = models.CharField(max_length=100, unique=True)
+    client_id = models.CharField(max_length=255)
+    client_secret = models.CharField(max_length=255)
+    redirect_uri = models.URLField()
+    grant_type = models.CharField(max_length=50, choices=[('authorization_code', 'Authorization Code'), ('client_credentials', 'Client Credentials')])
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "SSO Configuration"
+        verbose_name_plural = "SSO Configurations"
+        db_table = 'authentication_sso_configuration'
+
+    def __str__(self):
+        return f"SSO Configuration for {self.provider_name}"
