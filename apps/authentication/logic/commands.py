@@ -1,18 +1,13 @@
 
 import json
-from apps.authentication.logic.services.admin_auth import AdminAuthService
+from apps.authentication.logic.services import admin_auth
 
 class AdminAuthenticationCommand:
     def __init__(self, request):
         self.request = request
-        self.body = json.loads(request.body)
 
     def execute(self):
-        """
-        Authenticate an admin user with the provided username and password.
-        Returns True if authentication is successful, otherwise False.
-        """
-        admin_auth_service = AdminAuthService(self.request)
+        admin_auth_service = admin_auth.AdminAuthService(self.request)
         return admin_auth_service.execute()
 
 class AdminSetAndSendOTPCommand:
@@ -20,11 +15,8 @@ class AdminSetAndSendOTPCommand:
         self.request = request
 
     def execute(self):
-        """
-        Set a one-time password (OTP) for the admin user.
-        """
-        admin_auth_service = AdminAuthService(self.request)
-        return admin_auth_service.set_one_time_password(self.request.GET.get('email'))
+        admin_auth_service = admin_auth.AdminOTPService(self.request)
+        return admin_auth_service.execute(self.request.GET.get('email'))
 
 class AdminChangePasswordCommand:
     def __init__(self, request):
@@ -32,8 +24,5 @@ class AdminChangePasswordCommand:
         self.body = json.loads(request.body)
 
     def execute(self):
-        """
-        Change the password for the admin user.
-        """
-        admin_auth_service = AdminAuthService(self.request)
-        return admin_auth_service.change_password(admin_email=self.body.get('email'), otp=self.body.get('otp'), new_password=self.body.get('new_password'))
+        admin_auth_service = admin_auth.AdminChangePasswordService(self.request)
+        return admin_auth_service.execute(admin_email=self.body.get('email'), otp=self.body.get('otp'), new_password=self.body.get('new_password'))

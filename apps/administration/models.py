@@ -90,7 +90,9 @@ class AdministratorFlaggedIP(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     ip_address = models.GenericIPAddressField()
     reason = models.TextField(blank=True, null=True)
+    is_flagged = models.BooleanField(default=True)
     flagged_at = models.DateTimeField(auto_now_add=True)
+    flagged_until = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Administrator Flagged IP"
@@ -145,3 +147,19 @@ class AdministratorOneTimePassword(models.Model):
 
     def __str__(self):
         return f"OTP for {self.admin.name} - {self.otp}"
+
+class AdministratorLoginAttempt(models.Model):
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    attempt_time = models.DateTimeField(auto_now_add=True)
+    success = models.BooleanField(default=False)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Administrator Login Attempt"
+        verbose_name_plural = "Administrator Login Attempts"
+        ordering = ['-attempt_time']
+        db_table = 'administrator_login_attempt'
+
+    def __str__(self):
+        return f"{self.admin.name} - {'Success' if self.success else 'Failed'} at {self.attempt_time}"
+    
