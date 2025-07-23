@@ -61,33 +61,31 @@ class AuthenticationService:
             case _:
                 return {"code": 400, "status": "error", "message": "Invalid authentication type.", "data": None}
     
-    def _sso_login(self, sso_token):
-        """
-        Authenticate the admin user using Single Sign-On (SSO) token.
-        Returns True if authentication is successful, otherwise False.
-        """
-        # Implement SSO authentication logic here
-        pass
-
-    def _mfa_authentication(self, admin_id, mfa_code):
-        """
-        Authenticate the admin user using Multi-Factor Authentication (MFA) code.
-        Returns True if authentication is successful, otherwise False.
-        """
-        # Implement MFA authentication logic here
-        pass
-    
     def _log_login_history(self, admin_id, ip_address):
         """
         Log the login history for the admin user.
         """
-        self.owner_login_history_object.objects.create(admin_id=admin_id, ip_address=ip_address)
+        try:
+            self.owner_login_history_object.objects.create(admin_id=admin_id, ip_address=ip_address)
+        except self.owner_login_history_object.DoesNotExist:
+            logger.error(f"Failed to log login history for admin ID {admin_id}.")
+            return {"code": 500, "status": "error", "message": "Internal server error while logging login history.", "data": None}
+        except Exception as e:
+            logger.error(f"Error logging login history for admin ID {admin_id}: {e}")
+            return {"code": 500, "status": "error", "message": "Internal server error while logging login history.", "data": None}
 
     def _log_login_attempt(self, admin_id, success, ip_address):
         """
         Log the login attempt for the admin user.
         """
-        self.owner_login_attempt_object.objects.create(admin_id=admin_id, success=success, ip_address=ip_address)
+        try:
+            self.owner_login_attempt_object.objects.create(admin_id=admin_id, success=success, ip_address=ip_address)
+        except self.owner_login_attempt_object.DoesNotExist:
+            logger.error(f"Failed to log login attempt for admin ID {admin_id}.")
+            return {"code": 500, "status": "error", "message": "Internal server error while logging login attempt.", "data": None}
+        except Exception as e:
+            logger.error(f"Error logging login attempt for admin ID {admin_id}: {e}")
+            return {"code": 500, "status": "error", "message": "Internal server error while logging login attempt.", "data": None}
 
     def _check_flag_ip_address(self, ip_address):
         """
@@ -99,32 +97,43 @@ class AuthenticationService:
             return flagged_ip
         except self.owner_flagged_ip_object.DoesNotExist:
             return None
+        except Exception as e:
+            logger.error(f"Error checking flagged IP address {ip_address}: {e}")
+            return None
 
 class CredentialsLogin(LoginService):
-    def __init__(self):
-        pass
-    
-    def login(self, username, password):
-        credential = self.owner_credential_object.objects.select_related('admin').filter(username=username).first()
-        if not credential:
-            return {"code": 404, "status": "error", "message": "Invalid credentials.", "data": None}
+    def __init__(self, parent):
+        self.parent = parent
 
-        admin = credential.admin
-        ip_address = self.request.META.get('REMOTE_ADDR')
+    def login(self, **kwargs):
+        username = kwargs.get('username')
+        password = kwargs.get('password')
+        logger.info(f"Attempting to authenticate admin user with username: {username}")
+        
+        try:
+            credential = self.parent.owner_credential_object.objects.select_related('admin').filter(username=username).first()
+            if not credential:
+                return {"code": 404, "status": "error", "message": "Invalid credentials.", "data": None}
 
-        if not (credential.is_active and admin.is_active):
-            self._log_login_attempt(admin.id, False, ip_address)
-            logger.error(f"Admin user with username {username} is inactive.")
-            return {"code": 403, "status": "error", "message": "Admin user is inactive.", "data": None}
+            admin = credential.admin
+            ip_address = self.parent.request.META.get('REMOTE_ADDR')
 
-        if check_password(password, credential.password):
-            self._log_login_history(admin.id, ip_address)
-            self._log_login_attempt(admin.id, True, ip_address)
-            return {"code": 200, "status": "success", "message": "Authentication successful.", "data": {"admin_id": admin.id}}
-        else:
-            self._log_login_attempt(admin.id, False, ip_address)
-            logger.error(f"Invalid password for admin user with username {username}.")
-            return {"code": 401, "status": "error", "message": "Invalid password.", "data": None}
+            if not (credential.is_active and admin.is_active):
+                self.parent._log_login_attempt(admin.id, False, ip_address)
+                logger.error(f"Admin user with username {username} is inactive.")
+                return {"code": 403, "status": "error", "message": "Admin user is inactive.", "data": None}
+
+            if check_password(password, credential.password):
+                self.parent._log_login_history(admin.id, ip_address)
+                self.parent._log_login_attempt(admin.id, True, ip_address)
+                return {"code": 200, "status": "success", "message": "Authentication successful.", "data": {"admin_id": admin.id}}
+            else:
+                self.parent._log_login_attempt(admin.id, False, ip_address)
+                logger.error(f"Invalid password for admin user with username {username}.")
+                return {"code": 401, "status": "error", "message": "Invalid password.", "data": None}
+        except Exception as e:
+            logger.error(f"Error during admin authentication: {e}")
+            return {"code": 500, "status": "error", "message": "Internal server error.", "data": None}
 
 class GoogleSSOLogin(LoginService):
     def login(self, sso_token):

@@ -8,9 +8,9 @@ class AuthenticationContext:
     def set_strategy(self, strategy: LoginService):
         self.strategy = strategy
     
-    def login(self, *args, **kwargs):
+    def login(self, **kwargs):
         """
         Execute the login process using the current strategy.
         Returns the result of the login operation.
         """
-        return self.strategy.login(*args, **kwargs)
+        return self.strategy.login(**kwargs)
