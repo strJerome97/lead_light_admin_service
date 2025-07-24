@@ -76,30 +76,30 @@ class AuthenticationService:
             case _:
                 return {"code": 400, "status": "error", "message": "Invalid authentication type.", "data": None}
 
-    def _log_login_history(self, user_id, ip_address):
+    def _log_login_history(self, user_object, ip_address):
         """
         Log the login history for the user.
         """
         try:
-            self.owner_login_history_object.objects.create(**{f"{self.connect_key}_id": user_id}, ip_address=ip_address)
+            self.owner_login_history_object.objects.create(**{f"{self.connect_key}": user_object}, ip_address=ip_address)
         except self.owner_login_history_object.DoesNotExist:
-            logger.error(f"Failed to log login history for user ID {user_id}.")
+            logger.error(f"Failed to log login history for user ID {user_object.id}.")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login history.", "data": None}
         except Exception as e:
-            logger.error(f"Error logging login history for user ID {user_id}: {e}")
+            logger.error(f"Error logging login history for user ID {user_object.id}: {e}")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login history.", "data": None}
 
-    def _log_login_attempt(self, user_id, success, ip_address):
+    def _log_login_attempt(self, user_object, success, ip_address):
         """
         Log the login attempt for the user.
         """
         try:
-            self.owner_login_attempt_object.objects.create(**{self.connect_key: user_id}, success=success, ip_address=ip_address)
+            self.owner_login_attempt_object.objects.create(**{self.connect_key: user_object}, success=success, ip_address=ip_address)
         except self.owner_login_attempt_object.DoesNotExist:
-            logger.error(f"Failed to log login attempt for user ID {user_id}.")
+            logger.error(f"Failed to log login attempt for user ID {user_object.id}.")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login attempt.", "data": None}
         except Exception as e:
-            logger.error(f"Error logging login attempt for user ID {user_id}: {e}")
+            logger.error(f"Error logging login attempt for user ID {user_object.id}: {e}")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login attempt.", "data": None}
 
     def _check_flag_ip_address(self, ip_address):

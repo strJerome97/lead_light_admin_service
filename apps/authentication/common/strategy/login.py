@@ -44,8 +44,8 @@ class CredentialsLogin(LoginService):
             
             if check_password(password, credential.password):
                 # Log the successful login attempt
-                self.parent._log_login_history(user.id, ip_address)
-                self.parent._log_login_attempt(user.id, True, ip_address)
+                self.parent._log_login_history(user, ip_address)
+                self.parent._log_login_attempt(user, True, ip_address)
                 return {
                     "code": 200, 
                     "status": "success", 
