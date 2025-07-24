@@ -132,3 +132,23 @@ class BuildResponse:
         response["Access-Control-Allow-Headers"] = "Content-Type,X-Auth-Token,Origin,Authorization,Cookie"
         response["Access-Control-Allow-Credentials"] = "true"
         return response
+    
+    def set_cookie(self):
+        """
+        Set a cookie in the response with the specified name and value.
+        The cookie is set to expire after 1 day.
+        """
+        status_code = HTTP_STATUS_CODES.get(self.code, HTTPStatus.OK)["status"]
+        response = JsonResponse(self._build_response_body(), status=status_code, safe=False)
+        print(self.data)
+        for key, value in self.data.items():
+            response.set_cookie(
+                key=key,
+                value=value,
+                max_age=86400,  # 1 day in seconds
+                httponly=False,
+                secure=True,
+                samesite='None',
+                path='/'
+            )
+        return self._set_cors_headers(response, "POST")

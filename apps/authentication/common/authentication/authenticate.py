@@ -1,9 +1,8 @@
 
 import json
-from apps.authentication.common.abstract.abstract import LoginService
 from apps.authentication.common.context.context import AuthenticationContext
 from apps.utils.common.logger.logger import PortalLogger
-from django.contrib.auth.hashers import check_password
+from apps.authentication.common.strategy.login import CredentialsLogin, GoogleSSOLogin, DiscordSSOLogin, MFAAuthentication
 
 logger = PortalLogger("ADMIN_AUTH_SERVICE")
 
@@ -17,6 +16,10 @@ class AuthenticationService:
         self.owner_login_history_object = None
         self.owner_login_attempt_object = None
         self.flagged_ip_object = None
+        self.access_group_object = None
+        self.access_objects_object = None
+        self.access_permission_object = None
+        self.access_user_group_object = None
         self.otp_object = None
     
     def set_connect_key(self, connect_key):
@@ -39,10 +42,22 @@ class AuthenticationService:
     
     def set_otp_object(self, otp_object):
         self.otp_object = otp_object
+        
+    def set_access_group_object(self, access_group_object):
+        self.access_group_object = access_group_object
+    
+    def set_access_objects_object(self, access_objects_object):
+        self.access_objects_object = access_objects_object
+    
+    def set_access_permission_object(self, access_permission_object):
+        self.access_permission_object = access_permission_object
+    
+    def set_access_user_group_object(self, access_user_group_object):
+        self.access_user_group_object = access_user_group_object
 
     def execute(self):
         """
-        Execute the admin authentication process.
+        Execute the user authentication process.
         Returns True if authentication is successful, otherwise False.
         """
         match self.body.get('auth_type'):
@@ -57,34 +72,34 @@ class AuthenticationService:
                 return auth.login(sso_token=self.body.get('sso_token'))
             case 'mfa_authentication':
                 auth = AuthenticationContext(MFAAuthentication(self))
-                return auth.login(admin_id=self.body.get('admin_id'), mfa_code=self.body.get('mfa_code'))
+                return auth.login(user_id=self.body.get('user_id'), mfa_code=self.body.get('mfa_code'))
             case _:
                 return {"code": 400, "status": "error", "message": "Invalid authentication type.", "data": None}
-    
-    def _log_login_history(self, admin_id, ip_address):
+
+    def _log_login_history(self, user_id, ip_address):
         """
-        Log the login history for the admin user.
+        Log the login history for the user.
         """
         try:
-            self.owner_login_history_object.objects.create(admin_id=admin_id, ip_address=ip_address)
+            self.owner_login_history_object.objects.create(**{f"{self.connect_key}_id": user_id}, ip_address=ip_address)
         except self.owner_login_history_object.DoesNotExist:
-            logger.error(f"Failed to log login history for admin ID {admin_id}.")
+            logger.error(f"Failed to log login history for user ID {user_id}.")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login history.", "data": None}
         except Exception as e:
-            logger.error(f"Error logging login history for admin ID {admin_id}: {e}")
+            logger.error(f"Error logging login history for user ID {user_id}: {e}")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login history.", "data": None}
 
-    def _log_login_attempt(self, admin_id, success, ip_address):
+    def _log_login_attempt(self, user_id, success, ip_address):
         """
-        Log the login attempt for the admin user.
+        Log the login attempt for the user.
         """
         try:
-            self.owner_login_attempt_object.objects.create(admin_id=admin_id, success=success, ip_address=ip_address)
+            self.owner_login_attempt_object.objects.create(**{self.connect_key: user_id}, success=success, ip_address=ip_address)
         except self.owner_login_attempt_object.DoesNotExist:
-            logger.error(f"Failed to log login attempt for admin ID {admin_id}.")
+            logger.error(f"Failed to log login attempt for user ID {user_id}.")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login attempt.", "data": None}
         except Exception as e:
-            logger.error(f"Error logging login attempt for admin ID {admin_id}: {e}")
+            logger.error(f"Error logging login attempt for user ID {user_id}: {e}")
             return {"code": 500, "status": "error", "message": "Internal server error while logging login attempt.", "data": None}
 
     def _check_flag_ip_address(self, ip_address):
@@ -100,61 +115,45 @@ class AuthenticationService:
         except Exception as e:
             logger.error(f"Error checking flagged IP address {ip_address}: {e}")
             return None
-
-class CredentialsLogin(LoginService):
-    def __init__(self, parent):
-        self.parent = parent
-
-    def login(self, **kwargs):
-        username = kwargs.get('username')
-        password = kwargs.get('password')
-        logger.info(f"Attempting to authenticate admin user with username: {username}")
-        
+    
+    def _check_user_ip_consecutive_failed_attempts(self, user_id, ip_address):
+        """
+        Check the number of consecutive failed login attempts for the user from the given IP address.
+        Returns the count of failed attempts.
+        """
         try:
-            credential = self.parent.owner_credential_object.objects.select_related('admin').filter(username=username).first()
-            if not credential:
-                return {"code": 404, "status": "error", "message": "Invalid credentials.", "data": None}
-
-            admin = credential.admin
-            ip_address = self.parent.request.META.get('REMOTE_ADDR')
-
-            if not (credential.is_active and admin.is_active):
-                self.parent._log_login_attempt(admin.id, False, ip_address)
-                logger.error(f"Admin user with username {username} is inactive.")
-                return {"code": 403, "status": "error", "message": "Admin user is inactive.", "data": None}
-
-            if check_password(password, credential.password):
-                self.parent._log_login_history(admin.id, ip_address)
-                self.parent._log_login_attempt(admin.id, True, ip_address)
-                return {"code": 200, "status": "success", "message": "Authentication successful.", "data": {"admin_id": admin.id}}
+            failed_attempts = self.owner_login_attempt_object.objects.filter(
+                **{f"{self.connect_key}": user_id, 'ip_address': ip_address}
+            ).order_by('-id')[:10]
+            consecutive_failed = 0
+            for attempt in failed_attempts:
+                if not attempt.success:
+                    consecutive_failed += 1
+                else:
+                    consecutive_failed = 0
+            if consecutive_failed >= 5:
+                logger.warning(f"Admin ID {user_id} has {consecutive_failed} consecutive failed login attempts from IP {ip_address}.")
+                return {"status": "failed", "message": "Too many consecutive failed login attempts. IP address has been flagged."}
             else:
-                self.parent._log_login_attempt(admin.id, False, ip_address)
-                logger.error(f"Invalid password for admin user with username {username}.")
-                return {"code": 401, "status": "error", "message": "Invalid password.", "data": None}
+                return {"status": "success", "message": f"{consecutive_failed} consecutive failed attempts detected."}
         except Exception as e:
-            logger.error(f"Error during admin authentication: {e}")
-            return {"code": 500, "status": "error", "message": "Internal server error.", "data": None}
-
-class GoogleSSOLogin(LoginService):
-    def login(self, sso_token):
+            logger.error(f"Error checking consecutive failed attempts for user ID {user_id} from IP {ip_address}: {e}")
+            return {"status": "error", "message": "Internal server error while checking consecutive failed attempts."}
+    
+    def _fetch_user_access_groups(self, user_id):
         """
-        Authenticate the admin user using Single Sign-On (SSO) token.
-        Returns True if authentication is successful, otherwise False.
+        Fetch the access groups for the user.
+        Returns a list of access groups.
         """
-        pass
-
-class DiscordSSOLogin(LoginService):
-    def login(self, sso_token):
-        """
-        Authenticate the admin user using Discord SSO token.
-        Returns True if authentication is successful, otherwise False.
-        """
-        pass
-
-class MFAAuthentication(LoginService):
-    def login(self, admin_id, mfa_code):
-        """
-        Authenticate the admin user using Multi-Factor Authentication (MFA) code.
-        Returns True if authentication is successful, otherwise False.
-        """
-        pass
+        try:
+            if self.connect_key == "admin":
+                access_groups = self.access_user_group_object.objects.filter(admin_id=user_id).select_related('group')
+            else:
+                access_groups = self.access_user_group_object.objects.filter(user_id=user_id).select_related('group')
+            return [group.group for group in access_groups]
+        except self.access_user_group_object.DoesNotExist:
+            logger.error(f"No access groups found for user ID {user_id}.")
+            return []
+        except Exception as e:
+            logger.error(f"Error fetching access groups for user ID {user_id}: {e}")
+            return []

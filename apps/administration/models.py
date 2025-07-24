@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 class AdministratorUserDetails(models.Model):
     name = models.CharField(max_length=100)
+    company = models.ForeignKey('company.CompanyDetails', on_delete=models.CASCADE, related_name='administrators', null=True, blank=True)
     email = models.EmailField(unique=True)
     code = models.CharField(max_length=150, unique=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)

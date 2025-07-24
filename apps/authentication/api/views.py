@@ -13,7 +13,7 @@ class AdminAuthenticationView(CodeAuthView):
         """
         execute_use_case = UseCase(commands.AdminAuthenticationCommand(request))
         response = execute_use_case.execute()
-        return BuildResponse(response).post_response()
+        return BuildResponse(response).set_cookie()
 
 class AdminChangePasswordRequestView(CodeAuthView):
     def get(self, request):

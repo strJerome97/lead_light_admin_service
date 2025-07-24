@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -28,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-76j)=7n7zi)z#%^!2ki11&llxen^s=g5tl^jtn#z#tg895hoxr')
+SECRET_KEY = os.getenv('HANDSHAKE_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
