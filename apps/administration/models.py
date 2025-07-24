@@ -44,20 +44,6 @@ class AdministratorLoginCredential(models.Model):
     def __str__(self):
         return f"{self.username} - {self.admin.name}"
 
-class AdministratorLoginHistory(models.Model):
-    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
-    login_time = models.DateTimeField(auto_now_add=True)
-    ip_address = models.GenericIPAddressField(blank=True, null=True)
-
-    class Meta:
-        verbose_name = "Administrator Login History"
-        verbose_name_plural = "Administrator Login Histories"
-        ordering = ['-login_time']
-        db_table = 'administrator_login_history'
-
-    def __str__(self):
-        return f"{self.admin.name} - {self.login_time}"
-
 class AdministratorRecoveryEmail(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     email = models.EmailField(unique=True)
@@ -105,8 +91,9 @@ class AdministratorFlaggedIP(models.Model):
 class AdministratorFlaggedEmail(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     email = models.EmailField()
-    reason = models.TextField(blank=True, null=True)
+    is_flagged = models.BooleanField(default=True)
     flagged_at = models.DateTimeField(auto_now_add=True)
+    flagged_until = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Administrator Flagged Email"
@@ -122,7 +109,9 @@ class AdministratorFlaggedPhone(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15)
     reason = models.TextField(blank=True, null=True)
+    is_flagged = models.BooleanField(default=True)
     flagged_at = models.DateTimeField(auto_now_add=True)
+    flagged_until = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Administrator Flagged Phone"
@@ -148,6 +137,20 @@ class AdministratorOneTimePassword(models.Model):
 
     def __str__(self):
         return f"OTP for {self.admin.name} - {self.otp}"
+
+class AdministratorLoginHistory(models.Model):
+    admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
+    login_time = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Administrator Login History"
+        verbose_name_plural = "Administrator Login Histories"
+        ordering = ['-login_time']
+        db_table = 'administrator_login_history'
+
+    def __str__(self):
+        return f"{self.admin.name} - {self.login_time}"
 
 class AdministratorLoginAttempt(models.Model):
     admin = models.ForeignKey(AdministratorUserDetails, on_delete=models.CASCADE)
