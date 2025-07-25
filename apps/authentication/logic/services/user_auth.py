@@ -13,7 +13,7 @@ class UserAuthService:
         service = AuthenticationService(self.request)
         service.set_connect_key("user")
         service.set_owner_object(user_models.UserDetails)
-        service.set_owner_credential_object(user_models.UserLoginCredential)
+        service.set_owner_credential_object(user_models.UserCredential)
         service.set_owner_login_history_object(user_models.UserLoginHistory)
         service.set_owner_login_attempt_object(user_models.UserLoginAttempt)
         service.set_flagged_ip_object(user_models.UserFlaggedIP)
@@ -24,12 +24,12 @@ class UserChangePasswordService:
     def __init__(self, request):
         self.request = request
 
-    def execute(self, admin_email, otp, new_password):
+    def execute(self, user_email, otp, new_password):
         service = ChangeAccountPasswordService()
         service.assign_owner_object(user_models.UserDetails)
-        service.assign_owner_credential_object(user_models.UserLoginCredential)
+        service.assign_owner_credential_object(user_models.UserCredential)
         service.assign_otp_object(user_models.UserOneTimePassword)
-        service.set_email(admin_email)
+        service.set_email(user_email)
         service.set_new_password(new_password)
         service.set_otp(otp)
         return service.execute()

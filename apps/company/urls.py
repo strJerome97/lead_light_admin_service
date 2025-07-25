@@ -4,5 +4,5 @@ from .api import views
 app_name = 'company'
 
 urlpatterns = [
-    # Add your URL patterns here
+    path('operations/', views.CompanySCRUDView.as_view(), name='company_scrud')
 ]
