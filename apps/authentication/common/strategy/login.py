@@ -1,8 +1,10 @@
 
-
 from django.contrib.auth.hashers import check_password
 from apps.authentication.common.abstract.abstract import LoginService
+from apps.authentication.common.jwt import JWTService
 from apps.utils.common.logger.logger import PortalLogger
+from django.utils import timezone
+from datetime import timedelta
 
 logger = PortalLogger(__name__)
 
@@ -11,6 +13,14 @@ class CredentialsLogin(LoginService):
         self.parent = parent
 
     def login(self, **kwargs):
+        """
+        This method handles user login using credentials.
+        It checks the provided username and password against the stored credentials,
+        and returns a response indicating the success or failure of the authentication.
+        :param kwargs: Contains 'username' and 'password' for authentication.
+        :return: A dictionary with the authentication result, including user ID, company ID, and
+        access and refresh tokens if authentication is successful.
+        """
         username = kwargs.get('username')
         password = kwargs.get('password')
         logger.info(f"Attempting to authenticate user with username: {username}")
@@ -46,13 +56,22 @@ class CredentialsLogin(LoginService):
                 # Log the successful login attempt
                 self.parent._log_login_history(user, ip_address)
                 self.parent._log_login_attempt(user, True, ip_address)
+                # Generate JWT tokens for the user
+                access_jwt = JWTService().generate_jwt_token(user.id, user.company.id if user.company else None, type="access_token")
+                refresh_jwt = JWTService().generate_jwt_token(user.id, user.company.id if user.company else None, expiration=timezone.now() + timedelta(days=30), type="refresh_token")
                 return {
                     "code": 200, 
                     "status": "success", 
                     "message": "Authentication successful.", 
                     "data": {
-                        "uid": user.id,
-                        "cid": user.company.id if user.company else None
+                        "cookies": {
+                            "uid": user.id,
+                            "cid": user.company.id if user.company else None,
+                        },
+                        "tokens": {
+                            "access_token": access_jwt,
+                            "refresh_token": refresh_jwt,
+                        }
                     }
                 }
             else:

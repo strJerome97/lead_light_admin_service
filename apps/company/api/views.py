@@ -1,20 +1,21 @@
 
 from apps.utils.common.use_case.use_case import UseCase
+from apps.utils.common.response.response_builder import BuildResponse
+from apps.utils.common.auth.admin_auth import AdminAuthMiddleware
 from apps.company.logic import commands
-from django.views import View
 
 
 # Create your views here.
-class CompanySCRUDView(View):
+class CompanySCRUDView(AdminAuthMiddleware):
     def get(self, request):
         # Logic for handling GET requests
         pass
 
     def post(self, request):
         # Logic for handling POST requests
-        command = commands.CompanyCreateCommand(request)
+        command = UseCase(commands.CompanyCreateCommand(request))
         result = command.execute()
-        return result
+        return BuildResponse(result).post_response()
 
     def put(self, request):
         # Logic for handling PUT requests

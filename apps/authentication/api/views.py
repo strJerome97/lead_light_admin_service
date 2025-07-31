@@ -39,3 +39,10 @@ class UserChangePasswordRequestView(CodeAuthView):
         execute_use_case = UseCase(commands.UserChangePasswordCommand(request))
         response = execute_use_case.execute()
         return BuildResponse(response).put_response()
+
+# API Token Views
+class UserAccessTokenRefreshView(CodeAuthView):
+    def post(self, request):
+        execute_use_case = UseCase(commands.UserAccessTokenRefreshCommand(request))
+        response = execute_use_case.execute()
+        return BuildResponse(response).set_cookie()

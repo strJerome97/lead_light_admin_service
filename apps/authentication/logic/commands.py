@@ -3,7 +3,7 @@ import json
 from apps.authentication.logic.services import admin_auth
 from apps.authentication.logic.services import user_auth
 
-# Admin Authentication Commands
+# ---------------------------------------------- Admin Authentication Commands ----------------------------------------------
 class AdminAuthenticationCommand:
     def __init__(self, request):
         self.request = request
@@ -29,7 +29,7 @@ class AdminChangePasswordCommand:
         admin_auth_service = admin_auth.AdminChangePasswordService(self.request)
         return admin_auth_service.execute(admin_email=self.body.get('email'), otp=self.body.get('otp'), new_password=self.body.get('new_password'))
 
-# User Authentication Commands
+# ---------------------------------------------- User Authentication Commands ----------------------------------------------
 class UserAuthenticationCommand:
     def __init__(self, request):
         self.request = request
@@ -55,4 +55,13 @@ class UserChangePasswordCommand:
     def execute(self):
         user_auth_service = user_auth.UserChangePasswordService(self.request)
         return user_auth_service.execute(self.body.get('email'), self.body.get('otp'), self.body.get('new_password'))
-    
+
+# ---------------------------------------------- API Token Commands ----------------------------------------------
+class UserAccessTokenRefreshCommand:
+    def __init__(self, request):
+        self.request = request
+
+    def execute(self):
+        # Placeholder for token refresh logic
+        # This would typically involve validating the refresh token and issuing a new access token
+        return {"message": "Token refresh logic not implemented yet."}

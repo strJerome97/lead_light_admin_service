@@ -140,8 +140,9 @@ class BuildResponse:
         """
         status_code = HTTP_STATUS_CODES.get(self.code, HTTPStatus.OK)["status"]
         response = JsonResponse(self._build_response_body(), status=status_code, safe=False)
-        print(self.data)
-        for key, value in self.data.items():
+        cookie_data = self.data.get('cookies', {})
+        print(cookie_data)
+        for key, value in cookie_data.items():
             response.set_cookie(
                 key=key,
                 value=value,

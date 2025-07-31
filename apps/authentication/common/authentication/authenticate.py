@@ -1,10 +1,13 @@
 
+
 import json
+from django.conf import settings
 from apps.authentication.common.context.context import AuthenticationContext
 from apps.utils.common.logger.logger import PortalLogger
 from apps.authentication.common.strategy.login import CredentialsLogin, GoogleSSOLogin, DiscordSSOLogin, MFAAuthentication
 
 logger = PortalLogger("ADMIN_AUTH_SERVICE")
+SECRET_KEY = settings.SECRET_KEY
 
 class AuthenticationService:
     def __init__(self, request):
