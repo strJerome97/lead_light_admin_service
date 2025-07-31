@@ -61,28 +61,11 @@ class CreateCompanyRecords:
     def create(self):
         """Create company records."""
         try:
-            adapted_details = RecordAdapter().adapt_company_details(self.company_details)
-            
-            if not adapted_details:
-                logger.error("Invalid data format for company records.")
-                return {"code": 400, "success": False, "message": "Invalid data format", "data": None}
-            
-            details_res = CompanyDetails.objects.create(**adapted_details)
-            if not details_res:
-                logger.error("Failed to create company details.")
-                return {"code": 500, "success": False, "message": "Failed to create company details", "data": None}
-            
-            adapted_address = RecordAdapter().adapt_address(self.address, fkey=details_res)
-            if not adapted_address:
-                logger.error("Invalid data format for company address.")
-                return {"code": 400, "success": False, "message": "Invalid data format for address", "data": None}
-            CompanyAddress.objects.create(**adapted_address)
-            
-            adapted_bank_account = RecordAdapter().adapt_bank_account(self.bank_account, fkey=details_res)
-            if not adapted_bank_account:
-                logger.error("Invalid data format for company bank account.")
-                return {"code": 400, "success": False, "message": "Invalid data format for bank account", "data": None}
-            CompanyBankAccount.objects.create(**adapted_bank_account)
+            details_res = self.create_company_details()
+            if not details_res["success"]:
+                return {"code": details_res["code"], "success": False, "message": details_res["message"], "data": None}
+            self.create_company_address(details_res["data"])
+            self.create_company_bank_account(details_res["data"])
 
             return {"code": 201, "success": True, "message": "Company records created successfully", "data": None}
         except Exception as e:
@@ -93,38 +76,100 @@ class CreateCompanyRecords:
         try:
             """Create company details."""
             adapted_details = RecordAdapter().adapt_company_details(self.company_details)
-            return CompanyDetails.objects.create(**adapted_details)
+            if not adapted_details:
+                logger.error("Invalid data format for company records.")
+                return {"code": 400, "success": False, "message": "Invalid data format", "data": None}
+            data = CompanyDetails.objects.create(**adapted_details)
+            return {"code": 201, "success": True, "message": "Company details created successfully", "data": data}
         except Exception as e:
             logger.error(f"Internal server error: {str(e)}")
             return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
     
     def create_company_address(self, company):
         """Create company address."""
-        adapted_address = RecordAdapter().adapt_address(self.address, fkey=company)
-        return CompanyAddress.objects.create(**adapted_address)
+        try:
+            adapted_address = RecordAdapter().adapt_address(self.address, fkey=company)
+            if not adapted_address:
+                logger.error("Invalid data format for company address.")
+            CompanyAddress.objects.create(**adapted_address)
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
     
     def create_company_bank_account(self, company):
         """Create company bank account."""
-        adapted_bank_account = RecordAdapter().adapt_bank_account(self.bank_account, fkey=company)
-        return CompanyBankAccount.objects.create(**adapted_bank_account)
+        try:
+            adapted_bank_account = RecordAdapter().adapt_bank_account(self.bank_account, fkey=company)
+            if not adapted_bank_account:
+                logger.error("Invalid data format for company bank account.")
+            CompanyBankAccount.objects.create(**adapted_bank_account)
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
 
 class UpdateCompanyRecords:
-    def __init__(self, company_id, updated_details):
+    def __init__(self, company_id, company_details, address, bank_account):
         self.company_id = company_id
-        self.updated_details = updated_details
+        self.company_details = company_details
+        self.address = address
+        self.bank_account = bank_account
 
     def update(self):
         """Update company records."""
-        pass
+        try:
+            company_obj = self.update_company_details()
+            if not company_obj["success"]:
+                return {"code": company_obj["code"], "success": False, "message": company_obj["message"], "data": None}
+            self.update_company_address(company_obj["data"])
+            self.update_company_bank_account(company_obj["data"])
+            return {"code": 200, "success": True, "message": "Company records updated successfully", "data": None}
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
     
     def update_company_details(self):
         """Update company details."""
-        pass
-    
+        try:
+            adapted_details = RecordAdapter().adapt_company_details(self.company_details)
+            if not adapted_details:
+                logger.error("Invalid data format for company records.")
+                return {"code": 400, "success": False, "message": "Invalid data format", "data": None}
+            obj = CompanyDetails.objects.filter(id=self.company_id).first()
+            if not obj:
+                logger.error("Company details not found.")
+                return {"code": 404, "success": False, "message": "Company details not found", "data": None}
+            obj.update(**adapted_details)
+            return {"code": 200, "success": True, "message": "Company details updated successfully", "data": obj}
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
+
     def update_company_address(self, company):
         """Update company address."""
-        pass
+        try:
+            adapted_address = RecordAdapter().adapt_address(self.address, fkey=company)
+            if not adapted_address:
+                logger.error("Invalid data format for company address.")
+                return {"code": 400, "success": False, "message": "Invalid data format for address", "data": None}
+            obj = CompanyAddress.objects.filter(company=company).first()
+            if not obj:
+                logger.error("Company address not found.")
+                return {"code": 404, "success": False, "message": "Company address not found", "data": None}
+            obj.update(**adapted_address)
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
 
     def update_company_bank_account(self, company):
         """Update company bank account."""
-        pass
+        try:
+            adapted_bank_account = RecordAdapter().adapt_bank_account(self.bank_account, fkey=company)
+            if not adapted_bank_account:
+                logger.error("Invalid data format for company bank account.")
+                return {"code": 400, "success": False, "message": "Invalid data format for bank account", "data": None}
+            obj = CompanyBankAccount.objects.filter(company=company).first()
+            if not obj:
+                logger.error("Company bank account not found.")
+                return {"code": 404, "success": False, "message": "Company bank account not found", "data": None}
+            obj.update(**adapted_bank_account)
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}

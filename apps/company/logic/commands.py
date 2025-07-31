@@ -3,7 +3,7 @@ import json
 import traceback
 import sys
 from apps.utils.common.logger.logger import PortalLogger
-from apps.company.logic.services.crud.company import CreateCompanyRecords
+from apps.company.logic.services.crud.company import CreateCompanyRecords, UpdateCompanyRecords
 from apps.utils.common.abstract.create_interface import CreateCommand
 from apps.company.logic.services.validate import company as validate_company
 
@@ -22,11 +22,9 @@ class CompanyCreateCommand(CreateCommand):
                 address=self.body.get("address"),
                 bank_account=self.body.get("bankAccount")
             ).create()
-            
             if not result["success"]:
                 return {"code": result["code"], "success": False, "message": result["message"], "data": None}
             return {"code": 201, "success": True, "message": "Company created successfully", "data": None}
-        
         except KeyError as e:
             logger.error(f"KeyError: {str(e)} - {traceback.format_exc()}")
             return {"code": 400, "success": False, "message": f"Missing key in request body: {str(e)}", "data": None}
@@ -85,7 +83,25 @@ class CompanyUpdateCommand:
         self.body = json.loads(request.body)
     
     def update(self):
-        pass
+        try:
+            result = UpdateCompanyRecords(
+                company_id=self.body.get("id"),
+                company_details=self.body.get("details"),
+                address=self.body.get("address"),
+                bank_account=self.body.get("bankAccount")
+            ).update()
+            if not result["success"]:
+                return {"code": result["code"], "success": False, "message": result["message"], "data": None}
+            return {"code": 200, "success": True, "message": "Company updated successfully", "data": None}
+        except KeyError as e:
+            logger.error(f"KeyError: {str(e)} - {traceback.format_exc()}")
+            return {"code": 400, "success": False, "message": f"Missing key in request body: {str(e)}", "data": None}
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON format in request body")
+            return {"code": 400, "success": False, "message": "Invalid JSON format", "data": None}
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
     
     def validate(self):
         # Logic to validate the updated company details
