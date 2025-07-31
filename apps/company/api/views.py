@@ -23,26 +23,28 @@ class CompanySCRUDView(AdminAuthMiddleware):
         result = command.execute()
         return BuildResponse(result).patch_response()
 
-    def put(self, request):
-        # Logic for handling PUT requests
-        pass
-
     def delete(self, request):
         # Logic for handling DELETE requests
-        pass
+        command = UseCase(commands.CompanyDeleteCommand(request))
+        result = command.execute()
+        return BuildResponse(result).delete_response()
 
 class CompanyRestoreView(AdminAuthMiddleware):
+    def get(self, request):
+        pass
+    
     def patch(self, request):
         # Logic for handling restoration of a company
-        pass
-        # command = UseCase(commands.CompanyRestoreCommand(request))
-        # result = command.execute()
-        # return BuildResponse(result).patch_response()
+        command = UseCase(commands.CompanyRestoreCommand(request))
+        result = command.execute()
+        return BuildResponse(result).patch_response()
         
 class CompanyArchiveView(AdminAuthMiddleware):
+    def get(self, request):
+        pass
+    
     def patch(self, request):
         # Logic for handling archiving of a company
-        pass
-        # command = UseCase(commands.CompanyArchiveCommand(request))
-        # result = command.execute()
-        # return BuildResponse(result).patch_response()
+        command = UseCase(commands.CompanyArchiveCommand(request))
+        result = command.execute()
+        return BuildResponse(result).patch_response()

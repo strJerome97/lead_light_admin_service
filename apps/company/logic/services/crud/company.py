@@ -1,4 +1,5 @@
 
+import json
 from apps.utils.common.logger.logger import PortalLogger
 from apps.company.models import CompanyDetails, CompanyAddress, CompanyBankAccount
 
@@ -132,11 +133,16 @@ class UpdateCompanyRecords:
             if not adapted_details:
                 logger.error("Invalid data format for company records.")
                 return {"code": 400, "success": False, "message": "Invalid data format", "data": None}
+            
             obj = CompanyDetails.objects.filter(id=self.company_id).first()
             if not obj:
                 logger.error("Company details not found.")
                 return {"code": 404, "success": False, "message": "Company details not found", "data": None}
-            obj.update(**adapted_details)
+            
+            for key, value in adapted_details.items():
+                setattr(obj, key, value)
+            obj.save()
+            
             return {"code": 200, "success": True, "message": "Company details updated successfully", "data": obj}
         except Exception as e:
             logger.error(f"Internal server error: {str(e)}")
@@ -149,11 +155,16 @@ class UpdateCompanyRecords:
             if not adapted_address:
                 logger.error("Invalid data format for company address.")
                 return {"code": 400, "success": False, "message": "Invalid data format for address", "data": None}
+            
             obj = CompanyAddress.objects.filter(company=company).first()
             if not obj:
                 logger.error("Company address not found.")
                 return {"code": 404, "success": False, "message": "Company address not found", "data": None}
-            obj.update(**adapted_address)
+            
+            for key, value in adapted_address.items():
+                setattr(obj, key, value)
+            obj.save()
+            
         except Exception as e:
             logger.error(f"Internal server error: {str(e)}")
             return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
@@ -165,23 +176,29 @@ class UpdateCompanyRecords:
             if not adapted_bank_account:
                 logger.error("Invalid data format for company bank account.")
                 return {"code": 400, "success": False, "message": "Invalid data format for bank account", "data": None}
+            
             obj = CompanyBankAccount.objects.filter(company=company).first()
             if not obj:
                 logger.error("Company bank account not found.")
                 return {"code": 404, "success": False, "message": "Company bank account not found", "data": None}
-            obj.update(**adapted_bank_account)
+
+            for key, value in adapted_bank_account.items():
+                setattr(obj, key, value)
+            obj.save()
+            
         except Exception as e:
             logger.error(f"Internal server error: {str(e)}")
             return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
 
 class ArchiveCompany:
-    def __init__(self, company_id):
-        self.company_id = company_id
+    def __init__(self, request):
+        self.request = request
+        self.body = json.loads(request.body)
 
     def archive(self):
         """Archive a company."""
         try:
-            company = CompanyDetails.objects.filter(id=self.company_id).first()
+            company = CompanyDetails.objects.filter(id=self.body.get("id")).first()
             if not company:
                 logger.error("Company not found.")
                 return {"code": 404, "success": False, "message": "Company not found", "data": None}
@@ -193,13 +210,14 @@ class ArchiveCompany:
             return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
 
 class RestoreCompany:
-    def __init__(self, company_id):
-        self.company_id = company_id
+    def __init__(self, request):
+        self.request = request
+        self.body = json.loads(request.body)
 
     def restore(self):
         """Restore an archived company."""
         try:
-            company = CompanyDetails.objects.filter(id=self.company_id).first()
+            company = CompanyDetails.objects.filter(id=self.body.get("id")).first()
             if not company:
                 logger.error("Company not found.")
                 return {"code": 404, "success": False, "message": "Company not found", "data": None}
@@ -211,13 +229,14 @@ class RestoreCompany:
             return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
 
 class DeleteCompany:
-    def __init__(self, company_id):
-        self.company_id = company_id
+    def __init__(self, request):
+        self.request = request
+        self.body = json.loads(request.body)
 
     def delete(self):
         """Delete a company."""
         try:
-            company = CompanyDetails.objects.filter(id=self.company_id).first()
+            company = CompanyDetails.objects.filter(id=self.body.get("id")).first()
             if not company:
                 logger.error("Company not found.")
                 return {"code": 404, "success": False, "message": "Company not found", "data": None}

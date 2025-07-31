@@ -66,6 +66,8 @@ class CompanyCreateCommand(CreateCommand):
             return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
 
     def execute(self):
+        # Check User Permissions
+        
         validation_result = self.validate()
         if not validation_result["success"]:
             return {"code": validation_result["code"], "status": "error", "message": validation_result["message"], "data": None}
@@ -141,38 +143,62 @@ class CompanyUpdateCommand:
             return {"code": validation_result["code"], "status": "error", "message": validation_result["message"], "data": None}
 
         # Update company records
-        # result = self.update()
-        # if not result.get("success", True):
-        #     return {"code": 500, "status": "error", "message": "Failed to update company records", "data": None}
+        result = self.update()
+        if not result.get("success", True):
+            return {"code": 500, "status": "error", "message": "Failed to update company records", "data": None}
 
         return {"code": 200, "status": "success", "message": "Company updated successfully", "data": None}
 
 class CompanyArchiveCommand:
     def __init__(self, request):
-        self.company_id = request.get("id")
+        self.request = request
 
     def execute(self):
-        # Logic to archive a company
-        archive_service = ArchiveCompany(self.company_id)
-        return archive_service.archive()
+        try:
+            # Logic to archive a company
+            archive_service = ArchiveCompany(self.request)
+            result = archive_service.archive()
+            if not result["success"]:
+                logger.error(f"Error while archiving company: {result['message']}")
+                return {"code": result["code"], "status": "error", "message": result["message"], "data": None}
+            return {"code": 200, "status": "success", "message": "Company archived successfully", "data": None}
+        except Exception as e:
+            logger.error(f"Error while archiving company: {str(e)}")
+            return {"code": 500, "status": "error", "message": f"Internal server error: {str(e)}", "data": None}
 
 class CompanyRestoreCommand:
     def __init__(self, request):
-        self.company_id = request.get("id")
+        self.request = request
 
     def execute(self):
-        # Logic to restore an archived company
-        restore_service = RestoreCompany(self.company_id)
-        return restore_service.restore()
+        try:
+            # Logic to restore a company
+            restore_service = RestoreCompany(self.request)
+            result = restore_service.restore()
+            if not result["success"]:
+                logger.error(f"Error while restoring company: {result['message']}")
+                return {"code": result["code"], "status": "error", "message": result["message"], "data": None}
+            return {"code": 200, "status": "success", "message": "Company restored successfully", "data": None}
+        except Exception as e:
+            logger.error(f"Error while restoring company: {str(e)}")
+            return {"code": 500, "status": "error", "message": f"Internal server error: {str(e)}", "data": None}
 
 class CompanyDeleteCommand:
     def __init__(self, request):
-        self.company_id = request.get("id")
+        self.request = request
 
     def execute(self):
         # Logic to delete a company
-        delete_service = DeleteCompany(self.company_id)
-        return delete_service.delete()
+        try:
+            delete_service = DeleteCompany(self.request)
+            result = delete_service.delete()
+            if not result["success"]:
+                logger.error(f"Error while deleting company: {result['message']}")
+                return {"code": result["code"], "status": "error", "message": result["message"], "data": None}
+            return {"code": 204, "status": "success", "message": "Company deleted successfully", "data": None}
+        except Exception as e:
+            logger.error(f"Error while deleting company: {str(e)}")
+            return {"code": 500, "status": "error", "message": f"Internal server error: {str(e)}", "data": None}
 
 class CompanyRetrieveCommand:
     def __init__(self, company_id):

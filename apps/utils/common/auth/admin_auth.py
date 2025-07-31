@@ -39,10 +39,10 @@ class AdminAuthMiddleware(View):
                     "message": payload["message"],
                     "data": None
                 }, request.method)
-                
+            logger.info(f"Payload is {payload}")
             return super().dispatch(request, *args, **kwargs)
         except Exception as e:
-            logger.error(f"An error occurred during authentication: {e}")
+            logger.error(f"An error occurred during authentication: {e} (Line: {sys.exc_info()[-1].tb_lineno})")
             return self._fetch_appropriate_response({
                 "code": 500,
                 "status": "error",
