@@ -3,7 +3,7 @@ import json
 import traceback
 import sys
 from apps.utils.common.logger.logger import PortalLogger
-from apps.company.logic.services.crud.company import CreateCompanyRecords, UpdateCompanyRecords
+from apps.company.logic.services.crud.company import ArchiveCompany, CreateCompanyRecords, RestoreCompany, UpdateCompanyRecords, DeleteCompany
 from apps.utils.common.abstract.create_interface import CreateCommand
 from apps.company.logic.services.validate import company as validate_company
 
@@ -148,28 +148,31 @@ class CompanyUpdateCommand:
         return {"code": 200, "status": "success", "message": "Company updated successfully", "data": None}
 
 class CompanyArchiveCommand:
-    def __init__(self, company_id):
-        self.company_id = company_id
+    def __init__(self, request):
+        self.company_id = request.get("id")
 
     def execute(self):
         # Logic to archive a company
-        pass
+        archive_service = ArchiveCompany(self.company_id)
+        return archive_service.archive()
 
 class CompanyRestoreCommand:
-    def __init__(self, company_id):
-        self.company_id = company_id
+    def __init__(self, request):
+        self.company_id = request.get("id")
 
     def execute(self):
         # Logic to restore an archived company
-        pass
+        restore_service = RestoreCompany(self.company_id)
+        return restore_service.restore()
 
 class CompanyDeleteCommand:
-    def __init__(self, company_id):
-        self.company_id = company_id
+    def __init__(self, request):
+        self.company_id = request.get("id")
 
     def execute(self):
         # Logic to delete a company
-        pass
+        delete_service = DeleteCompany(self.company_id)
+        return delete_service.delete()
 
 class CompanyRetrieveCommand:
     def __init__(self, company_id):

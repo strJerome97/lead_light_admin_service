@@ -173,3 +173,56 @@ class UpdateCompanyRecords:
         except Exception as e:
             logger.error(f"Internal server error: {str(e)}")
             return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
+
+class ArchiveCompany:
+    def __init__(self, company_id):
+        self.company_id = company_id
+
+    def archive(self):
+        """Archive a company."""
+        try:
+            company = CompanyDetails.objects.filter(id=self.company_id).first()
+            if not company:
+                logger.error("Company not found.")
+                return {"code": 404, "success": False, "message": "Company not found", "data": None}
+            company.is_active = False
+            company.save()
+            return {"code": 200, "success": True, "message": "Company archived successfully", "data": None}
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
+
+class RestoreCompany:
+    def __init__(self, company_id):
+        self.company_id = company_id
+
+    def restore(self):
+        """Restore an archived company."""
+        try:
+            company = CompanyDetails.objects.filter(id=self.company_id).first()
+            if not company:
+                logger.error("Company not found.")
+                return {"code": 404, "success": False, "message": "Company not found", "data": None}
+            company.is_active = True
+            company.save()
+            return {"code": 200, "success": True, "message": "Company restored successfully", "data": None}
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
+
+class DeleteCompany:
+    def __init__(self, company_id):
+        self.company_id = company_id
+
+    def delete(self):
+        """Delete a company."""
+        try:
+            company = CompanyDetails.objects.filter(id=self.company_id).first()
+            if not company:
+                logger.error("Company not found.")
+                return {"code": 404, "success": False, "message": "Company not found", "data": None}
+            company.delete()
+            return {"code": 200, "success": True, "message": "Company deleted successfully", "data": None}
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            return {"code": 500, "success": False, "message": f"Internal server error: {str(e)}", "data": None}
